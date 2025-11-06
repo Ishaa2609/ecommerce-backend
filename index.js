@@ -3,6 +3,7 @@ import bodyParser from 'body-parser';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { v4 as uuid } from 'uuid';
+import serverless from 'serverless-http';
 
 import Connection from './database/db.js';
 import DefaultData from './default.js';
@@ -45,4 +46,5 @@ export let paytmParams = {
 };
 
 // ✅ Don't use app.listen() — export instead
-export default app;
+export const handler = serverless(app);
+// export default app;
