@@ -15,22 +15,16 @@ const app = express();
 app.use(bodyParser.json({ extended: true }));
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cors());
+
+// Root route
 app.get('/', (req, res) => {
   res.send('Backend is running successfully 🚀');
 });
 
+// API routes
 app.use('/', Routes);
 
-const username = process.env.DB_USERNAME;
-const password = process.env.DB_PASSWORD;
-
-// connect to database
-Connection(username, password);
-
-// load default data
-DefaultData();
-
-// paytm setup
+// Paytm setup (optional)
 export let paytmMerchantkey = process.env.PAYTM_MERCHANT_KEY;
 export let paytmParams = {
   MID: process.env.PAYTM_MID,
@@ -40,11 +34,24 @@ export let paytmParams = {
   ORDER_ID: uuid(),
   CUST_ID: process.env.PAYTM_CUST_ID,
   TXN_AMOUNT: '100',
-  CALLBACK_URL: 'https://your-backend-name.vercel.app/callback',
+  CALLBACK_URL: 'http://localhost:5000/callback', // change for local
   EMAIL: 'kunaltyagi@gmail.com',
   MOBILE_NO: '1234567852'
 };
 
-// ✅ Don't use app.listen() — export instead
+// Connect to database
+const username = process.env.DB_USERNAME;
+const password = process.env.DB_PASSWORD;
+Connection(username, password);
+DefaultData();
+
+// ✅ Local server
+if (process.env.NODE_ENV !== 'production') {
+  const PORT = process.env.PORT || 5000;
+  app.listen(PORT, () => {
+    console.log(`Server running on http://localhost:${PORT}`);
+  });
+}
+
+// ✅ Vercel handler
 export const handler = serverless(app);
-// export default app;
