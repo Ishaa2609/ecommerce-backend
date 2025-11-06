@@ -14,6 +14,10 @@ const app = express();
 app.use(bodyParser.json({ extended: true }));
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cors());
+app.get('/', (req, res) => {
+  res.send('Backend is running successfully 🚀');
+});
+
 app.use('/', Routes);
 
 const username = process.env.DB_USERNAME;
