@@ -34,24 +34,38 @@ export let paytmParams = {
   ORDER_ID: uuid(),
   CUST_ID: process.env.PAYTM_CUST_ID,
   TXN_AMOUNT: '100',
-  CALLBACK_URL: 'http://localhost:5000/callback', // change for local
+  CALLBACK_URL: process.env.NODE_ENV === 'production'
+    ? 'https://your-vercel-backend.vercel.app/callback'
+    : 'http://localhost:5000/callback',
   EMAIL: 'kunaltyagi@gmail.com',
   MOBILE_NO: '1234567852'
 };
 
-// Connect to database
-const username = process.env.DB_USERNAME;
-const password = process.env.DB_PASSWORD;
-Connection(username, password);
-DefaultData();
+// ✅ Cache DB connection
+let isConnected = false;
 
-// ✅ Local server
+// ✅ Serverless handler for Vercel
+export const handler = serverless(async (req, res) => {
+  const username = process.env.DB_USERNAME;
+  const password = process.env.DB_PASSWORD;
+
+  // Connect to DB only once
+  if (!isConnected) {
+    await Connection(username, password);
+    isConnected = true;
+
+    // Load default data only once
+    await DefaultData();
+  }
+
+  // Pass request to Express
+  return app(req, res);
+});
+
+// ✅ Local server (for testing with `npm start`)
 if (process.env.NODE_ENV !== 'production') {
   const PORT = process.env.PORT || 5000;
   app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
   });
 }
-
-// ✅ Vercel handler
-export const handler = serverless(app);
